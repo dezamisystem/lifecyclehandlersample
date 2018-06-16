@@ -38,8 +38,6 @@ class ExtraApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        Logtime.d("onCreate")
-
         // Life cycle
         registerActivityLifecycleCallbacks(LifecycleHandler(this))
     }
@@ -61,7 +59,7 @@ class ExtraApplication : Application() {
             createdCount += 1
             if (createdCount == 1) {
 
-                Logtime.d("created == 1")
+                Logtime.d("createdCount == 1")
             }
         }
 
@@ -70,35 +68,30 @@ class ExtraApplication : Application() {
 
             runningCount += 1
 
-            Logtime.d("running = " + Integer.toString(runningCount))
+            Logtime.d("runningCount = " + Integer.toString(runningCount))
 
-            when(runningCount) {
-                0 -> {
-                    // アプリ外から復帰時
-                    // app must be returned from background just now (or first launch)
-                    owner.mAppStatus = AppStatus.RETURN_TO_FOREGROUND
+            if (runningCount == 1) {
+                // アプリ外から復帰時
+                // app must be returned from background just now (or first launch)
+                owner.mAppStatus = AppStatus.RETURN_TO_FOREGROUND
 
-                    Logtime.d("RETURN_TO_FOREGROUND")
+                Logtime.d("RETURN_TO_FOREGROUND")
+
+                // 初回起動時ならば
+                if (!alreadyLaunched) {
+                    alreadyLaunched = true
+
+                    Logtime.d("初回起動時")
                 }
-                1 -> {
-                    owner.mAppStatus = AppStatus.FOREGROUND
+            } else if (runningCount < 1) {
+                Logtime.w("runningCount < 1")
+            }
+            else {
+                // 2 or more running activities,
+                // should be foreground already.
+                owner.mAppStatus = AppStatus.FOREGROUND
 
-                    // 初回起動時ならば
-                    if (!alreadyLaunched) {
-                        alreadyLaunched = true
-
-                        Logtime.d("初回起動時ならば")
-                    }
-
-                    Logtime.d("FOREGROUND")
-                }
-                else -> {
-                    // 2 or more running activities,
-                    // should be foreground already.
-                    owner.mAppStatus = AppStatus.FOREGROUND
-
-                    Logtime.d("running > 2")
-                }
+                Logtime.d("runningCount >= 2")
             }
 
         }
@@ -116,10 +109,9 @@ class ExtraApplication : Application() {
 
             runningCount -= 1
 
-            Logtime.d("running = " + Integer.toString(runningCount))
+            Logtime.d("runningCount = " + Integer.toString(runningCount))
 
             if (runningCount <= 0) {
-                runningCount = 0
                 // no active activity
                 // app goes to background
                 owner.mAppStatus = AppStatus.BACKGROUND
